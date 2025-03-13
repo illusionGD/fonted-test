@@ -8,7 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "eslint": "eslint --ignore-pattern .nuxt/*"
+    "eslint": "eslint --ignore-pattern .nuxt/*",
+    "preview:ssg": "npm run generate && npm run preview"
   },
   "dependencies": {
     "@pinia/nuxt": "^0.10.1",

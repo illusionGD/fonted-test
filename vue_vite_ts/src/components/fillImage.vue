@@ -1,6 +1,8 @@
 <template>
     <div>
         <canvas ref="canvasDom"></canvas>
+        <div class="test-img"></div>
+        <img src="../assets/图片_1.jpg" alt="" />
     </div>
 </template>
 
@@ -26,10 +28,14 @@ async function drawBg() {
     const imgs = await Promise.all(
         new Array(15).fill(icon).map((src) => loadImage(src))
     )
-    const sdfData = await createSDFData(canvasDom.value,)
+    const sdfData = await createSDFData(canvasDom.value)
     console.log('🚀 ~ sdfData:', sdfData)
     fillImg(canvasDom.value, sdfData, imgs)
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.test-img {
+    background-image: url('../assets/icon/lADPD3lG5MN-zvzNAfjNAcE_449_504.jpg');
+}
+</style>

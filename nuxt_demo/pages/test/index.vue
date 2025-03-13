@@ -1,5 +1,7 @@
 <template>
-    <div class="index"></div>
+    <div class="test">
+        <a href="https://www.bilibili.com/"></a>
+    </div>
 </template>
 <script>
 export default {}

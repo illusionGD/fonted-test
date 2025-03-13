@@ -5,6 +5,17 @@ export default defineNuxtConfig({
     compatibilityDate: '2024-11-01',
     devtools: { enabled: true },
     modules: ['@pinia/nuxt'],
+    // 关键配置
+    nitro: {
+        prerender: {
+            crawlLinks: true, // 自动爬取链接生成静态页
+            routes: [], // 强制预渲染的路由（可选）
+        },
+    },
+    // 静态资源路径配置（可选）
+    app: {
+        buildAssetsDir: '/_nuxt/', // 匹配 CDN 路径
+    },
     vite: {
         base:
             process.env.NODE_ENV === 'production'
@@ -18,7 +29,7 @@ export default defineNuxtConfig({
             },
         },
         build: {
-            assetsDir: '_nuxt' // 确保构建目录与CDN路径匹配
-        }
+            assetsDir: '_nuxt', // 确保构建目录与CDN路径匹配
+        },
     },
 })
