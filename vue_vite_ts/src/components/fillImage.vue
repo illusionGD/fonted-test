@@ -13,6 +13,7 @@ import icon from '../assets/icon/lADPBFRycRn13bLNAuPNAs8_719_739.jpg'
 import { createSDFData, fillImg, getImagePixels, loadImage } from '../utils'
 const canvasDom = ref<HTMLCanvasElement>()
 let ctx: CanvasRenderingContext2D
+const test = ref('./test/test.png')
 onMounted(() => {
     ctx = canvasDom.value.getContext('2d')
     drawBg()
@@ -36,6 +37,6 @@ async function drawBg() {
 
 <style lang="scss" scoped>
 .test-img {
-    background-image: url('../assets/icon/lADPD3lG5MN-zvzNAfjNAcE_449_504.jpg');
+    background-image: url(../assets/icon/lADPD3lG5MN-zvzNAfjNAcE_449_504.jpg);
 }
 </style>

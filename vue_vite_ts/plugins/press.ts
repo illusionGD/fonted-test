@@ -5,6 +5,13 @@ import sharp from 'sharp'
 import { existsSync, readdirSync, readFileSync, statSync, writeFile } from 'fs'
 import { getCacheKey } from './cache'
 
+function checkJPGExt(type: string) {
+    const ext = type.includes('.') ? type.replace('.', '') : type
+    return ext === IMG_FORMATS_ENUM.jpg || ext === IMG_FORMATS_ENUM.jpeg
+        ? 'jpeg'
+        : ext
+}
+
 export async function pressImage(filePath: string, { type, quality }: any) {
     // filter image
     if (!filterImage(filePath)) {
@@ -13,14 +20,22 @@ export async function pressImage(filePath: string, { type, quality }: any) {
     // get buffer
     const buffer = readFileSync(filePath)
     const { ext } = parse(filePath)
-    const key =
-        type === IMG_FORMATS_ENUM.jpg || type === IMG_FORMATS_ENUM.jpeg
-            ? 'jpeg'
-            : type
+    const key = checkJPGExt(type)
     if (ext.replace('.', '') === type) {
         return buffer
     }
     return (await sharp(buffer)[key]({ quality }).toBuffer()) as Buffer
+}
+
+export async function pressBufferToImage(
+    buffer: Buffer,
+    { type, quality }: any
+) {
+    const key = checkJPGExt(type)
+
+    const newBuffer = await sharp(buffer)[key]({ quality }).toBuffer()
+
+    return newBuffer
 }
 
 export async function processImage(filePath: string) {
