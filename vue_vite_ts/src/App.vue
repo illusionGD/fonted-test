@@ -1,9 +1,8 @@
-<script setup lang="ts">
-import FillImage from './components/fillImage.vue'
-</script>
-
 <template>
-    <FillImage></FillImage>
+    <tutorials></tutorials>
 </template>
 
-<style scoped></style>
+<script setup lang="ts">
+import Fish from './components/fish.vue'
+import tutorials from './components/tutorials.vue'
+</script>
