@@ -1,16 +1,63 @@
 <template>
+    <div class="test-box">
+        <div class="css-stroke">测试</div>
+        <div class="text-box">
+            <Outline
+                :text="'11212'"
+                :outlines="[
+                    // {
+                    //     color: 'black',
+                    //     width: 5,
+                    // },
+                    // {
+                    //     color: 'green',
+                    //     width: 5,
+                    // },
+                    // {
+                    //     color: 'yellow',
+                    //     width: 5,
+                    // },
+                    // {
+                    //     color: 'red',
+                    //     width: 5,
+                    // },
+                    // {
+                    //     color: 'blue',
+                    //     width: 5,
+                    // },
+                    // {
+                    //     color: '#fff',
+                    //     width: 5,
+                    // },
+                    // {
+                    //     color: '#000',
+                    //     width: 5,
+                    // },
+                    // {
+                    //     color: 'red',
+                    //     width: 5,
+                    // },
+                ]"
+            ></Outline>
+        </div>
+    </div>
+
+    <button @click="condition = !condition">test</button>
     <div ref="tutorials"></div>
 </template>
 
 <script setup lang="ts">
 import { Application, Graphics } from 'pixi.js'
 import { onMounted, ref } from 'vue'
+import Outline from './outline.vue'
+const condition = ref(false)
 const app = new Application()
 globalThis.__PIXI_APP__ = app
 const tutorials = ref(null)
 onMounted(() => {
     init()
 })
+
 window.addEventListener('resize', handleResize)
 // 判断是否为移动设备
 function isMobile() {
@@ -230,4 +277,28 @@ function createMountainGroup() {
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.test-box {
+    left: 100px;
+    top: 200px;
+    position: absolute;
+    z-index: 10;
+    display: flex;
+}
+.text-box {
+    margin-left: 20px;
+    display: flex;
+    font-size: 50px;
+    color: white;
+    text-decoration: underline;
+}
+
+.css-stroke {
+    font-size: 50px;
+    color: white;
+    line-height: 50px;
+    text-align: center;
+    text-decoration: underline;
+    // -webkit-text-stroke: 1px black;
+}
+</style>
