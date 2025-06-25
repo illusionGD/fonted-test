@@ -5,14 +5,14 @@
             <Outline
                 :text="'11212'"
                 :outlines="[
-                    // {
-                    //     color: 'black',
-                    //     width: 5,
-                    // },
-                    // {
-                    //     color: 'green',
-                    //     width: 5,
-                    // },
+                    {
+                        color: 'black',
+                        width: 5,
+                    },
+                    {
+                        color: 'green',
+                        width: 5,
+                    },
                     // {
                     //     color: 'yellow',
                     //     width: 5,
