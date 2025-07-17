@@ -41,7 +41,8 @@ export async function loadBundles(bundles: string | string[]) {
 
     // Load bundles
     console.log('[Assets] Load:', loadList.join(', '));
-    await Assets.loadBundle(loadList);
+    const list = await Assets.loadBundle(loadList);
+    console.log("🚀 ~ loadBundles ~ list:", list)
 
     // Append loaded bundles to the loaded list
     loadedBundles.push(...loadList);

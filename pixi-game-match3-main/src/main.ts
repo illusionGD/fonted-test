@@ -8,6 +8,7 @@ import { HomeScreen } from "./screens/HomeScreen";
 import { GameScreen } from "./screens/GameScreen";
 import { getUrlParam } from "./utils/getUrlParams";
 import { ResultScreen } from "./screens/ResultScreen";
+import { Texture } from "pixi.js";
 
 function resize() {
     const windowWidth = window.innerWidth;
@@ -61,6 +62,8 @@ async function init() {
     } else {
         await navigation.showScreen(HomeScreen);
     }
+    console.log(Texture.from('logo-game'));
+    
 }
 
 init();
