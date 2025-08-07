@@ -1,13 +1,1128 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
     <head>
         <meta charset="UTF-8" />
-        <link rel="icon" type="image/svg+xml" href="/vite.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Vite + Vue + TS</title>
+        <title>Spine动画序列帧导出工具</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.4.0/pixi.min.js"></script>
+        <script src="https://unpkg.com/@esotericsoftware/spine-pixi-v7@4.2.*/dist/iife/spine-pixi-v7.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+        <style>
+            :root {
+                --primary-color: #4a6fc7;
+                --secondary-color: #34495e;
+                --accent-color: #1abc9c;
+                --light-color: #ecf0f1;
+                --dark-color: #2c3e50;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+
+            body {
+                background: linear-gradient(
+                    135deg,
+                    var(--secondary-color),
+                    var(--dark-color)
+                );
+                color: var(--light-color);
+                min-height: 100vh;
+                padding: 20px;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            header {
+                text-align: center;
+                padding: 20px 0;
+                margin-bottom: 30px;
+            }
+
+            h1 {
+                font-size: 2.8rem;
+                margin-bottom: 10px;
+                background: linear-gradient(
+                    to right,
+                    var(--primary-color),
+                    var(--accent-color)
+                );
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            }
+
+            .subtitle {
+                font-size: 1.1rem;
+                color: #bdc3c7;
+                max-width: 600px;
+                margin: 0 auto;
+                line-height: 1.6;
+            }
+
+            .main-content {
+                display: grid;
+                grid-template-columns: 1fr 350px;
+                gap: 25px;
+            }
+
+            .animation-section {
+                background: rgba(30, 40, 52, 0.7);
+                border-radius: 12px;
+                padding: 20px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                backdrop-filter: blur(10px);
+                position: relative;
+                height: 75vh;
+            }
+
+            #rendererContainer {
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 8px;
+                overflow: hidden;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .control-section {
+                background: rgba(30, 40, 52, 0.7);
+                border-radius: 12px;
+                padding: 25px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                backdrop-filter: blur(10px);
+                height: 75vh;
+                overflow-y: auto;
+            }
+
+            .section-title {
+                font-size: 1.4rem;
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid var(--accent-color);
+                color: var(--accent-color);
+            }
+
+            .control-group {
+                margin-bottom: 25px;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 500;
+                color: #bdc3c7;
+            }
+
+            input,
+            select {
+                width: 100%;
+                padding: 12px;
+                background: rgba(15, 22, 33, 0.8);
+                border: 1px solid #445;
+                border-radius: 6px;
+                color: var(--light-color);
+                font-size: 1rem;
+                margin-bottom: 5px;
+            }
+
+            input:focus,
+            select:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 2px rgba(74, 111, 199, 0.3);
+            }
+
+            .file-upload-box {
+                border: 2px dashed #556;
+                border-radius: 8px;
+                padding: 20px;
+                text-align: center;
+                margin-bottom: 15px;
+                background: rgba(15, 22, 33, 0.4);
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+
+            .file-upload-box:hover {
+                border-color: var(--accent-color);
+                background: rgba(15, 22, 33, 0.6);
+            }
+
+            .file-upload-box p {
+                margin: 10px 0;
+            }
+
+            .button-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-top: 15px;
+            }
+
+            .btn {
+                padding: 12px 18px;
+                background: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                flex: 1;
+                min-width: 120px;
+            }
+
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+                background: #3e5fbc;
+            }
+
+            .btn.secondary {
+                background: var(--secondary-color);
+            }
+
+            .btn.secondary:hover {
+                background: #2c3e50;
+            }
+
+            .btn.accent {
+                background: var(--accent-color);
+            }
+
+            .btn.accent:hover {
+                background: #16a085;
+            }
+
+            .file-list {
+                background: rgba(15, 22, 33, 0.5);
+                border-radius: 6px;
+                padding: 10px;
+                margin-top: 15px;
+                max-height: 150px;
+                overflow-y: auto;
+            }
+
+            .file-item {
+                padding: 8px;
+                margin-bottom: 5px;
+                background: rgba(30, 40, 52, 0.5);
+                border-radius: 4px;
+                display: flex;
+                align-items: center;
+            }
+
+            .file-icon {
+                margin-right: 10px;
+                font-size: 1.2rem;
+                width: 24px;
+                text-align: center;
+            }
+
+            .frame-preview {
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .frames-list {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                max-height: 200px;
+                overflow-y: auto;
+                padding: 5px;
+                background: rgba(15, 22, 33, 0.3);
+                border-radius: 6px;
+                margin-top: 10px;
+            }
+
+            .frame-item {
+                width: 80px;
+                height: 80px;
+                background-color: #000;
+                border-radius: 4px;
+                overflow: hidden;
+                cursor: pointer;
+                opacity: 0.7;
+                transition: all 0.2s;
+            }
+
+            .frame-item:hover {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+
+            .frame-item img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+
+            .progress-container {
+                background: rgba(0, 0, 0, 0.3);
+                height: 10px;
+                border-radius: 5px;
+                margin: 15px 0;
+                overflow: hidden;
+                display: none;
+            }
+
+            .progress-bar {
+                height: 100%;
+                background: var(--accent-color);
+                border-radius: 5px;
+                width: 0%;
+                transition: width 0.3s;
+            }
+
+            .instructions {
+                background: rgba(15, 22, 33, 0.7);
+                padding: 15px;
+                border-radius: 8px;
+                margin-top: 20px;
+                font-size: 0.9rem;
+            }
+
+            .instructions h3 {
+                color: var(--accent-color);
+                margin-bottom: 10px;
+            }
+
+            .instructions ol {
+                padding-left: 20px;
+            }
+
+            .instructions li {
+                margin-bottom: 8px;
+            }
+
+            footer {
+                text-align: center;
+                padding: 25px 0;
+                margin-top: 30px;
+                color: #95a5a6;
+                font-size: 0.9rem;
+            }
+
+            @media (max-width: 900px) {
+                .main-content {
+                    grid-template-columns: 1fr;
+                }
+
+                .animation-section,
+                .control-section {
+                    height: auto;
+                    min-height: 500px;
+                }
+            }
+        </style>
     </head>
     <body>
-        <div id="app"></div>
+        <div class="container">
+            <header>
+                <h1>Spine动画序列帧导出工具</h1>
+                <p class="subtitle">
+                    上传您的Spine动画文件（JSON、Atlas、PNG），导出为序列帧图片或GIF动画
+                </p>
+            </header>
+
+            <div class="main-content">
+                <div class="animation-section">
+                    <h2 class="section-title">动画预览区</h2>
+                    <div id="rendererContainer">
+                        <p id="loadingText">请上传Spine文件开始预览...</p>
+                    </div>
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h2 class="section-title">控制面板</h2>
+
+                    <div class="control-group">
+                        <label for="spineFiles">Spine资源文件</label>
+                        <div class="file-upload-box" id="fileUploadBox">
+                            <p>将文件拖放到此处 或</p>
+                            <input
+                                type="file"
+                                id="fileInput"
+                                multiple
+                                style="display: none"
+                            />
+                            <button class="btn secondary" id="selectFilesBtn">
+                                选择Spine文件
+                            </button>
+                        </div>
+
+                        <div class="file-list" id="fileList">
+                            <div id="jsonStatus" class="file-item">
+                                <div class="file-icon">📁</div>
+                                JSON文件：未选择
+                            </div>
+                            <div id="atlasStatus" class="file-item">
+                                <div class="file-icon">📁</div>
+                                Atlas文件：未选择
+                            </div>
+                            <div id="imageStatus" class="file-item">
+                                <div class="file-icon">🖼️</div>
+                                PNG纹理：未选择
+                            </div>
+                        </div>
+
+                        <div class="button-group">
+                            <button class="btn" id="playButton" disabled>
+                                播放动画
+                            </button>
+                            <button
+                                class="btn secondary"
+                                id="pauseButton"
+                                disabled
+                            >
+                                暂停
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="fps">帧率 (FPS)</label>
+                        <input
+                            type="number"
+                            id="fps"
+                            value="24"
+                            min="1"
+                            max="60"
+                        />
+
+                        <label for="resolution">分辨率缩放 (%)</label>
+                        <input
+                            type="number"
+                            id="resolution"
+                            value="100"
+                            min="10"
+                            max="200"
+                        />
+
+                        <label for="animationName">动画名称</label>
+                        <select id="animationSelect" disabled>
+                            <option value="">请先加载文件</option>
+                        </select>
+
+                        <div class="button-group">
+                            <button class="btn" id="captureButton" disabled>
+                                捕获序列帧
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="button-group">
+                            <button class="btn" id="exportPng" disabled>
+                                导出PNG序列
+                            </button>
+                            <button class="btn" id="exportZip" disabled>
+                                导出ZIP压缩包
+                            </button>
+                            <button class="btn accent" id="exportGif" disabled>
+                                导出GIF动画
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="frame-preview">
+                        <h3 class="section-title">捕获帧预览</h3>
+                        <p id="frameCount">已捕获: 0 帧</p>
+                        <div class="frames-list" id="framesList">
+                            <!-- 动态添加帧预览 -->
+                        </div>
+                    </div>
+
+                    <div class="instructions">
+                        <h3>使用说明:</h3>
+                        <ol>
+                            <li>上传Spine的JSON、Atlas和PNG文件</li>
+                            <li>选择要导出的动画名称</li>
+                            <li>设置帧率和分辨率</li>
+                            <li>点击"捕获序列帧"开始捕获</li>
+                            <li>导出为PNG序列、ZIP或GIF格式</li>
+                        </ol>
+                        <p><i>注意: 过长的动画可能会影响浏览器性能</i></p>
+                    </div>
+                </div>
+            </div>
+
+            <footer>
+                <p>© 2023 Spine动画序列帧导出工具 | 基于PixiJS和Spine运行时</p>
+            </footer>
+        </div>
+
+        <script>
+            // 全局变量
+            let app, spineAnim
+            let capturedFrames = []
+            let captureInterval
+            let isCapturing = false
+            let currentFrame = 0
+            let totalFrames = 0
+            let spineAssets = {
+                json: null,
+                atlas: null,
+                image: null,
+            }
+            if (!PIXI.spine) {
+                PIXI.spine = spine
+            }
+
+            // 初始化Pixi应用
+            function initRenderer() {
+                const container = document.getElementById('rendererContainer')
+                app = new PIXI.Application({
+                    backgroundAlpha: 0,
+                    width: container.clientWidth,
+                    height: container.clientHeight,
+                })
+
+                // 添加平滑的抗锯齿
+                app.renderer.antialias = true
+
+                container.appendChild(app.view)
+
+                // 添加帮助文本
+                const helpText = new PIXI.Text('请加载Spine动画文件', {
+                    fontFamily: 'Arial',
+                    fontSize: 20,
+                    fill: 0xaaaaaa,
+                })
+                helpText.anchor.set(0.5)
+                helpText.position.set(
+                    app.screen.width / 2,
+                    app.screen.height / 2
+                )
+                app.stage.addChild(helpText)
+            }
+
+            // 更新文件状态显示
+            function updateFileStatus(type, fileName) {
+                const statusElement = document.getElementById(`${type}Status`)
+                if (fileName) {
+                    const ext = fileName.split('.').pop().toUpperCase()
+                    statusElement.innerHTML = `
+                    <div class="file-icon">${
+                        type === 'image' ? '🖼️' : '📁'
+                    }</div>
+                    <span>${type.toUpperCase()}文件：${fileName}</span>
+                    <span style="margin-left: auto; color: var(--accent-color)">✓</span>
+                `
+                    // spineAssets[type] = fileName;
+                } else {
+                    statusElement.innerHTML = `
+                    <div class="file-icon">${
+                        type === 'image' ? '🖼️' : '📁'
+                    }</div>
+                    ${
+                        type === 'image'
+                            ? 'PNG纹理'
+                            : type.toUpperCase() + '文件'
+                    }: 未选择
+                `
+                    // spineAssets[type] = null;
+                }
+            }
+
+            // 加载Spine动画
+            async function loadSpineAnimation() {
+                const jsonFile = spineAssets.json
+                const atlasFile = spineAssets.atlas
+                const imageFile = spineAssets.image
+
+                if (!jsonFile || !atlasFile || !imageFile) {
+                    alert('请上传所有必要的文件：JSON、Atlas和PNG')
+                    return
+                }
+
+                try {
+                    // 显示加载文本
+                    const helpText = app.stage.children[0]
+                    helpText.text = '正在加载Spine动画...'
+                    helpText.style.fill = 0x1abc9c
+
+                    // 创建图像纹理
+                    const texture = PIXI.Texture.from(imageFile)
+                    const res = await new Promise((resolve, reject) =>
+                        texture.on('update', resolve)
+                    )
+
+                    // 创建Spine对象
+                    const atlasLoader = {
+                        load: function (atlasContent, onLoad) {
+                            // 创建一个虚假的AtlasLoader
+                            const atlas = new PIXI.spine.core.TextureAtlas()
+                            const page = new PIXI.spine.core.TextureAtlasPage()
+                            page.name = 'texturePage'
+                            page.texture = texture
+                            page.width = texture.width
+                            page.height = texture.height
+                            atlas.pages.push(page)
+
+                            // 解析atlas内容
+                            const lines = atlasContent.split('\n')
+                            for (let i = 0; i < lines.length; i++) {
+                                const line = lines[i].trim()
+                                if (!line) continue
+
+                                // 解析区域
+                                if (
+                                    line.endsWith('.png') ||
+                                    line.endsWith('.jpg')
+                                ) {
+                                    // 跳过页面行
+                                    continue
+                                }
+
+                                const region =
+                                    new PIXI.spine.core.TextureAtlasRegion()
+                                region.name = line
+                                region.page = page
+
+                                // 下一个行是xy位置
+                                i++
+                                const [x, y, width, height] = lines[i]
+                                    .split(':')[1]
+                                    .trim()
+                                    .split(',')
+                                    .map(Number)
+                                region.x = x
+                                region.y = y
+                                region.width = width
+                                region.height = height
+
+                                // 解析偏移和原始尺寸
+                                i++
+                                const [offsetX, offsetY] = lines[i]
+                                    .split(':')[1]
+                                    .trim()
+                                    .split(',')
+                                    .map(Number)
+                                i++
+                                const [origWidth, origHeight] = lines[i]
+                                    .split(':')[1]
+                                    .trim()
+                                    .split(',')
+                                    .map(Number)
+
+                                region.originalWidth = origWidth
+                                region.originalHeight = origHeight
+                                region.offsetX = offsetX
+                                region.offsetY = offsetY
+
+                                // 计算UV
+                                region.u = x / texture.width
+                                region.v = y / texture.height
+                                region.u2 = (x + width) / texture.width
+                                region.v2 = (y + height) / texture.height
+
+                                // 旋转处理（假设备注）
+                                region.rotate = false
+
+                                atlas.regions.push(region)
+                            }
+
+                            onLoad(atlas)
+                        },
+                    }
+
+                    // 加载JSON骨架数据
+                    // const loadedResources = await PIXI.loadJson.load(jsonFile)
+                    
+                    const jsonData =
+                        jsonFile[Object.keys(jsonFile)[0]].data
+                    // 创建骨架解析器
+                    const skeletonJson = new PIXI.spine.SkeletonJson(
+                        atlasLoader
+                    )
+                   const spineData = skeletonJson.readSkeletonData(jsonData)
+      
+
+                    // 创建Spine动画实例
+                    spineAnim = new PIXI.spine.Spine(spineData)
+
+                    // 设置位置和缩放
+                    spineAnim.position.set(
+                        app.screen.width / 2,
+                        app.screen.height * 0.8
+                    )
+                    spineAnim.scale.set(0.5)
+
+                    // 添加到舞台
+                    app.stage.addChild(spineAnim)
+
+                    // 更新动画选择器
+                    updateAnimationSelector(
+                        spineData.animations.map((a) => a.name)
+                    )
+
+                    // 移除帮助文本
+                    app.stage.removeChild(helpText)
+
+                    // 启用控制按钮
+                    document.getElementById('playButton').disabled = false
+                    document.getElementById('pauseButton').disabled = false
+                    document.getElementById('captureButton').disabled = false
+
+                    console.log('Spine动画加载完成')
+                } catch (error) {
+                    console.error('加载Spine动画失败:', error)
+                    alert('加载Spine动画失败，请检查文件格式是否正确')
+                }
+            }
+
+            // 更新动画选择器
+            function updateAnimationSelector(animations) {
+                const select = document.getElementById('animationSelect')
+                select.innerHTML = ''
+                animations.forEach((anim) => {
+                    const option = document.createElement('option')
+                    option.value = anim
+                    option.textContent = anim
+                    select.appendChild(option)
+                })
+                select.disabled = false
+                document.getElementById('exportPng').disabled = false
+                document.getElementById('exportZip').disabled = false
+                document.getElementById('exportGif').disabled = false
+            }
+
+            // 播放动画
+            function playAnimation() {
+                const animName =
+                    document.getElementById('animationSelect').value
+                if (!spineAnim || !animName) return
+
+                try {
+                    spineAnim.state.setAnimation(0, animName, true)
+                    spineAnim.state.timeScale = 1.0
+                } catch (e) {
+                    alert(`无法播放动画 '${animName}'`)
+                }
+            }
+
+            // 暂停动画
+            function pauseAnimation() {
+                if (spineAnim) {
+                    spineAnim.state.timeScale = 0
+                }
+            }
+
+            // 开始捕获帧
+            function startCapture() {
+                if (!spineAnim) {
+                    alert('请先加载Spine动画')
+                    return
+                }
+
+                const animName =
+                    document.getElementById('animationSelect').value
+                if (!animName) {
+                    alert('请选择动画名称')
+                    return
+                }
+
+                // 重置捕获状态
+                capturedFrames = []
+                document.getElementById('frameCount').textContent =
+                    '已捕获: 0 帧'
+                document.getElementById('framesList').innerHTML = ''
+
+                // 获取用户设置
+                const fps = parseInt(document.getElementById('fps').value) || 24
+                const scale =
+                    parseInt(document.getElementById('resolution').value) /
+                        100 || 1
+
+                // 播放指定动画
+                spineAnim.state.setAnimation(0, animName, false)
+                spineAnim.state.timeScale = 1.0
+                spineAnim.state.tracks[0].animationStart = 0
+
+                // 计算总帧数
+                const duration = spineAnim.state.tracks[0].animationEnd
+                totalFrames = Math.ceil(duration * fps)
+
+                // 显示进度条
+                const progressContainer =
+                    document.getElementById('progressContainer')
+                const progressBar = document.getElementById('progressBar')
+                progressContainer.style.display = 'block'
+                progressBar.style.width = '0%'
+
+                // 设置捕获状态
+                currentFrame = 0
+                isCapturing = true
+
+                // 逐帧捕获
+                captureInterval = setInterval(() => {
+                    if (!spineAnim || !isCapturing) return
+
+                    // 渲染当前帧
+                    app.render()
+
+                    // 捕获帧
+                    captureFrame(scale)
+
+                    // 手动更新动画
+                    const timeDelta = 1 / fps
+                    spineAnim.state.update(timeDelta)
+                    spineAnim.state.apply(spineAnim.skeleton)
+                    spineAnim.update(timeDelta)
+
+                    // 更新进度
+                    currentFrame++
+                    progressBar.style.width = `${
+                        (currentFrame / totalFrames) * 100
+                    }%`
+
+                    // 检查是否完成
+                    if (
+                        currentFrame >= totalFrames ||
+                        spineAnim.state.tracks[0].trackTime >= duration
+                    ) {
+                        stopCapture()
+
+                        // 自动提示
+                        setTimeout(() => {
+                            alert(
+                                `已成功捕获 ${totalFrames} 帧，现在可以导出动画序列了`
+                            )
+                        }, 500)
+                    }
+                }, 1000 / fps)
+            }
+
+            // 捕获帧
+            function captureFrame(scale) {
+                const canvas = app.renderer.view
+                const tempCanvas = document.createElement('canvas')
+                const tempCtx = tempCanvas.getContext('2d')
+
+                // 设置缩放
+                tempCanvas.width = canvas.width * scale
+                tempCanvas.height = canvas.height * scale
+
+                // 绘制缩放后的图像
+                tempCtx.drawImage(
+                    canvas,
+                    0,
+                    0,
+                    canvas.width,
+                    canvas.height,
+                    0,
+                    0,
+                    tempCanvas.width,
+                    tempCanvas.height
+                )
+
+                // 获取数据URL
+                const dataURL = tempCanvas.toDataURL('image/png')
+                capturedFrames.push(dataURL)
+
+                // 更新帧预览
+                updateFramePreview(dataURL)
+            }
+
+            // 更新帧预览
+            function updateFramePreview(frameUrl) {
+                const frameCount = capturedFrames.length
+                document.getElementById(
+                    'frameCount'
+                ).textContent = `已捕获: ${frameCount} 帧`
+
+                // 仅在低于20帧时添加预览以提高性能
+                if (frameCount < 20) {
+                    const list = document.getElementById('framesList')
+                    const frameItem = document.createElement('div')
+                    frameItem.className = 'frame-item'
+
+                    const img = document.createElement('img')
+                    img.src = frameUrl
+                    frameItem.appendChild(img)
+
+                    list.appendChild(frameItem)
+                }
+            }
+
+            // 停止捕获
+            function stopCapture() {
+                clearInterval(captureInterval)
+                isCapturing = false
+
+                // 恢复原始动画状态
+                if (spineAnim) {
+                    const animName =
+                        document.getElementById('animationSelect').value
+                    spineAnim.state.setAnimation(0, animName, false)
+                }
+            }
+
+            // 导出PNG序列
+            async function exportPngSequence() {
+                if (capturedFrames.length === 0) {
+                    alert('请先捕获动画序列')
+                    return
+                }
+
+                try {
+                    // 创建ZIP文件
+                    const zip = new JSZip()
+                    const animName =
+                        document.getElementById('animationSelect').value
+                    const cleanName = animName.replace(/[^a-z0-9]/gi, '_')
+
+                    // 添加每帧图像到ZIP
+                    for (let i = 0; i < capturedFrames.length; i++) {
+                        // 从Data URL中提取Base64数据
+                        const base64Data = capturedFrames[i].split(',')[1]
+
+                        // 添加到ZIP文件
+                        zip.file(
+                            `${cleanName}_frame_${String(i).padStart(
+                                4,
+                                '0'
+                            )}.png`,
+                            base64Data,
+                            { base64: true }
+                        )
+                    }
+
+                    // 生成ZIP
+                    const zipBlob = await zip.generateAsync({ type: 'blob' })
+
+                    // 保存文件
+                    saveAs(zipBlob, `${cleanName}_frames.zip`)
+                } catch (error) {
+                    console.error('导出PNG序列失败:', error)
+                    alert('导出PNG序列时出错')
+                }
+            }
+
+            // 导出单个GIF
+            function exportSingleGif() {
+                if (capturedFrames.length === 0) {
+                    alert('请先捕获动画序列')
+                    return
+                }
+
+                try {
+                    // 创建临时Canvas
+                    const tempCanvas = document.createElement('canvas')
+                    const tempCtx = tempCanvas.getContext('2d')
+
+                    // 设置Canvas尺寸（使用第一帧的尺寸）
+                    const firstFrame = capturedFrames[0]
+                    const img = new Image()
+                    img.src = firstFrame
+
+                    img.onload = () => {
+                        tempCanvas.width = img.width
+                        tempCanvas.height = img.height
+
+                        // 创建GIF编码器
+                        const fps =
+                            parseInt(document.getElementById('fps').value) || 24
+                        const delay = 1000 / fps
+
+                        const gif = new GIF({
+                            workers: 2,
+                            quality: 10,
+                            width: tempCanvas.width,
+                            height: tempCanvas.height,
+                        })
+
+                        // 逐帧添加
+                        capturedFrames.forEach((dataUrl) => {
+                            const img = new Image()
+                            img.src = dataUrl
+
+                            // 等待图像加载
+                            img.onload = () => {
+                                // 绘制到Canvas
+                                tempCtx.clearRect(
+                                    0,
+                                    0,
+                                    tempCanvas.width,
+                                    tempCanvas.height
+                                )
+                                tempCtx.drawImage(img, 0, 0)
+
+                                // 添加帧到GIF
+                                gif.addFrame(tempCtx, {
+                                    copy: true,
+                                    delay: delay,
+                                })
+                            }
+                        })
+
+                        // 生成GIF
+                        gif.on('finished', function (blob) {
+                            const animName =
+                                document.getElementById('animationSelect').value
+                            const cleanName = animName.replace(
+                                /[^a-z0-9]/gi,
+                                '_'
+                            )
+                            saveAs(blob, `${cleanName}.gif`)
+                        })
+
+                        gif.render()
+                    }
+                } catch (error) {
+                    console.error('导出GIF失败:', error)
+                    alert('导出GIF时出错')
+                }
+            }
+
+            // 初始化页面
+            document.addEventListener('DOMContentLoaded', () => {
+                // 初始化渲染器
+                initRenderer()
+
+                // 设置拖放文件上传
+                const fileUploadBox = document.getElementById('fileUploadBox')
+                const fileInput = document.getElementById('fileInput')
+                const selectFilesBtn = document.getElementById('selectFilesBtn')
+
+                // 点击按钮打开文件选择器
+                selectFilesBtn.addEventListener('click', () => {
+                    fileInput.click()
+                })
+
+                // 处理文件选择
+                fileInput.addEventListener('change', (e) => {
+                    handleFileSelect(e.target.files)
+                })
+
+                // 设置拖放事件
+                fileUploadBox.addEventListener('dragover', (e) => {
+                    e.preventDefault()
+                    // fileUploadBox.style.borderColor = var('--accent-color');
+                })
+
+                fileUploadBox.addEventListener('dragleave', () => {
+                    fileUploadBox.style.borderColor = '#556'
+                })
+
+                fileUploadBox.addEventListener('drop', (e) => {
+                    e.preventDefault()
+                    handleFileSelect(e.dataTransfer.files)
+                    fileUploadBox.style.borderColor = '#556'
+                })
+
+                // 添加按钮事件监听
+                document
+                    .getElementById('playButton')
+                    .addEventListener('click', playAnimation)
+                document
+                    .getElementById('pauseButton')
+                    .addEventListener('click', pauseAnimation)
+                document
+                    .getElementById('captureButton')
+                    .addEventListener('click', startCapture)
+                document
+                    .getElementById('exportPng')
+                    .addEventListener('click', exportPngSequence)
+                document
+                    .getElementById('exportZip')
+                    .addEventListener('click', exportPngSequence)
+                document
+                    .getElementById('exportGif')
+                    .addEventListener('click', exportSingleGif)
+
+                // 添加响应式调整
+                window.addEventListener('resize', () => {
+                    if (app) {
+                        const container =
+                            document.getElementById('rendererContainer')
+                        app.renderer.resize(
+                            container.clientWidth,
+                            container.clientHeight
+                        )
+
+                        if (spineAnim) {
+                            spineAnim.position.set(
+                                container.clientWidth / 2,
+                                container.clientHeight * 0.7
+                            )
+                        } else {
+                            const helpText = app.stage.children[0]
+                            if (helpText) {
+                                helpText.position.set(
+                                    app.screen.width / 2,
+                                    app.screen.height / 2
+                                )
+                            }
+                        }
+                    }
+                })
+            })
+
+            // 处理文件选择
+            function handleFileSelect(files) {
+                if (!files || files.length === 0) return
+
+                Array.from(files).forEach((file) => {
+                    const ext = file.name.split('.').pop().toLowerCase()
+
+                    // 检测文件类型
+                    if (ext === 'json') {
+                        const reader = new FileReader()
+                        reader.onload = (e) => {
+                            spineAssets.json = JSON.parse(e.target.result)
+                            updateFileStatus('json', file.name)
+                            tryLoadAnimation()
+                        }
+                        reader.readAsText(file)
+                    } else if (ext === 'atlas') {
+                        const reader = new FileReader()
+                        reader.onload = (e) => {
+                            spineAssets.atlas = e.target.result
+                            updateFileStatus('atlas', file.name)
+                            tryLoadAnimation()
+                        }
+                        reader.readAsText(file)
+                    } else if (['png', 'jpg', 'jpeg'].includes(ext)) {
+                        const url = URL.createObjectURL(file)
+                        console.log('🚀 ~ url:', url)
+                        spineAssets.image = url
+                        updateFileStatus('image', file.name)
+                        tryLoadAnimation()
+                    }
+                })
+            }
+
+            // 尝试加载动画
+            function tryLoadAnimation() {
+                if (
+                    spineAssets.json &&
+                    spineAssets.atlas &&
+                    spineAssets.image
+                ) {
+                    // 延迟一点时间确保DOM更新
+                    setTimeout(() => {
+                        loadSpineAnimation()
+                    }, 100)
+                }
+            }
+        </script>
     </body>
-    <script type="module" src="./src/main.ts"></script>
 </html>

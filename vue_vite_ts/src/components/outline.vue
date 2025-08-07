@@ -104,14 +104,14 @@ async function renderSvg() {
     const outlineW = outlineList.value[0]?.width || 0
     console.log('🚀 ~ outlineList.value:', outlineList.value.length)
     const baselineY = bbox.height - descent
-    const svgW = props.maxWidth || bbox.width + outlineW
+    const svgW = props.maxWidth || bbox.width+ outlineW
     console.log('🚀 ~ outlineW:', outlineW)
     console.log('🚀 ~ svgW:', svgW)
-    const svgH = props.maxHeight || bbox.height
+    const svgH = props.maxHeight || bbox.height+ outlineW
 
     svgRef.value.setAttribute('width', `${svgW}`)
     svgRef.value.setAttribute('height', `${svgH}`)
-    svgRef.value.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`)
+    svgRef.value.setAttribute('viewBox', `0 0 ${svgW } ${svgH}`)
 
     await nextTick() // 等待渲染完成
 

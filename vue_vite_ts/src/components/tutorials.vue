@@ -5,38 +5,38 @@
             <Outline
                 :text="'11212'"
                 :outlines="[
-                    // {
-                    //     color: 'black',
-                    //     width: 5,
-                    // },
-                    // {
-                    //     color: 'green',
-                    //     width: 5,
-                    // },
-                    // {
-                    //     color: 'yellow',
-                    //     width: 5,
-                    // },
-                    // {
-                    //     color: 'red',
-                    //     width: 5,
-                    // },
-                    // {
-                    //     color: 'blue',
-                    //     width: 5,
-                    // },
-                    // {
-                    //     color: '#fff',
-                    //     width: 5,
-                    // },
-                    // {
-                    //     color: '#000',
-                    //     width: 5,
-                    // },
-                    // {
-                    //     color: 'red',
-                    //     width: 5,
-                    // },
+                    {
+                        color: 'black',
+                        width: 5,
+                    },
+                    {
+                        color: 'green',
+                        width: 5,
+                    },
+                    {
+                        color: 'yellow',
+                        width: 5,
+                    },
+                    {
+                        color: 'red',
+                        width: 5,
+                    },
+                    {
+                        color: 'blue',
+                        width: 5,
+                    },
+                    {
+                        color: '#fff',
+                        width: 5,
+                    },
+                    {
+                        color: '#000',
+                        width: 5,
+                    },
+                    {
+                        color: 'red',
+                        width: 5,
+                    },
                 ]"
             ></Outline>
         </div>

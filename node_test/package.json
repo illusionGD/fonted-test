@@ -1,0 +1,20 @@
+{
+  "name": "node_test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@pixi-spine/loader-4.1": "^4.0.6",
+    "@pixi-spine/runtime-4.1": "^4.0.6",
+    "fs-extra": "^11.3.0",
+    "pixi.js": "^8.10.1",
+    "xlsx": "^0.18.5"
+  }
+}
